@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WeatherStationViewer</string>
+    <string name="title_station_detail">Station Detail</string>
+</resources>
