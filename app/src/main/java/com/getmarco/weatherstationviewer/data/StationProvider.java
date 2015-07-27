@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
 /**
@@ -22,6 +23,72 @@ public class StationProvider extends ContentProvider {
     private static final int CONDITION = 300;
     private static final int CONDITION_AT_STATION = 301;
     private static final int LATEST_CONDITION_AT_STATION = 302;
+
+    private static final SQLiteQueryBuilder conditionAtStationQueryBuilder;
+    static{
+        conditionAtStationQueryBuilder = new SQLiteQueryBuilder();
+
+        //condition INNER JOIN station ON condition.station_id = station._id
+        conditionAtStationQueryBuilder.setTables(
+                StationContract.ConditionEntry.TABLE_NAME + " INNER JOIN " +
+                        StationContract.StationEntry.TABLE_NAME +
+                        " ON " + StationContract.ConditionEntry.TABLE_NAME +
+                        "." + StationContract.ConditionEntry.COLUMN_STATION_KEY +
+                        " = " + StationContract.StationEntry.TABLE_NAME +
+                        "." + StationContract.StationEntry._ID);
+    }
+
+    //station.tag = ?
+    private static final String stationTagSelection =
+            StationContract.StationEntry.TABLE_NAME+
+                    "." + StationContract.StationEntry.COLUMN_TAG + " = ? ";
+
+    //station.tag = ? AND date >= ?
+    private static final String stationTagWithStartDateSelection =
+            StationContract.StationEntry.TABLE_NAME+
+                    "." + StationContract.StationEntry.COLUMN_TAG + " = ? AND " +
+                    StationContract.ConditionEntry.COLUMN_DATE + " >= ? ";
+
+    private Cursor getConditionAtStation(Uri uri, String[] projection, String sortOrder) {
+        String station = StationContract.ConditionEntry.getStationFromUri(uri);
+        long startDate = StationContract.ConditionEntry.getStartDateFromUri(uri);
+
+        String[] selectionArgs;
+        String selection;
+
+        if (startDate == 0) {
+            selection = stationTagSelection;
+            selectionArgs = new String[]{station};
+        } else {
+            selection = stationTagWithStartDateSelection;
+            selectionArgs = new String[]{station, Long.toString(startDate)};
+        }
+
+        return conditionAtStationQueryBuilder.query(dbHelper.getReadableDatabase(),
+                projection,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                sortOrder
+        );
+    }
+
+    private Cursor getLatestConditionAtStation(Uri uri, String[] projection) {
+        String station = StationContract.ConditionEntry.getStationFromUri(uri);
+        String sortOrder = StationContract.ConditionEntry._ID + " DESC";
+        String limit = "1";
+
+        return conditionAtStationQueryBuilder.query(dbHelper.getReadableDatabase(),
+                projection,
+                stationTagSelection,
+                new String[]{station},
+                null,
+                null,
+                sortOrder,
+                limit
+        );
+    }
 
     @Override
     public boolean onCreate() {
@@ -71,11 +138,11 @@ public class StationProvider extends ContentProvider {
         switch (uriMatcher.match(uri)) {
             // "condition/*/latest"
             case LATEST_CONDITION_AT_STATION:
-                retCursor = getWeatherByLocationSettingAndDate(uri, projection, sortOrder);
+                retCursor = getLatestConditionAtStation(uri, projection);
                 break;
             // "condition/*"
             case CONDITION_AT_STATION:
-                retCursor = getWeatherByLocationSetting(uri, projection, sortOrder);
+                retCursor = getConditionAtStation(uri, projection, sortOrder);
                 break;
             // "condition"
             case CONDITION:
@@ -113,17 +180,18 @@ public class StationProvider extends ContentProvider {
         final SQLiteDatabase db = dbHelper.getWritableDatabase();
         final int match = uriMatcher.match(uri);
         Uri returnUri;
+        long _id;
 
         switch (match) {
             case STATION:
-                long _id = db.insert(StationContract.StationEntry.TABLE_NAME, null, values);
+                _id = db.insert(StationContract.StationEntry.TABLE_NAME, null, values);
                 if ( _id > 0 )
                     returnUri = StationContract.StationEntry.buildStationUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             case CONDITION:
-                long _id = db.insert(StationContract.ConditionEntry.TABLE_NAME, null, values);
+                _id = db.insert(StationContract.ConditionEntry.TABLE_NAME, null, values);
                 if ( _id > 0 )
                     returnUri = StationContract.ConditionEntry.buildConditionUri(_id);
                 else
