@@ -1,4 +1,46 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
     <string name="app_name">WeatherStationViewer</string>
     <string name="title_station_detail">Station Detail</string>
+
+    <!-- Strings related to Notifications preference -->
+    <string name="pref_enable_temp_notifications_key" translatable="false">enable_temp_notifications</string>
+    <string name="pref_enable_temp_notifications_label">Temperature Notifications</string>
+    <string name="pref_enable_humidity_notifications_key" translatable="false">enable_humidity_notifications</string>
+    <string name="pref_enable_humidity_notifications_label">Humidity Notifications</string>
+
+    <string name="pref_enable_notifications_true">Enabled</string>
+    <string name="pref_enable_notifications_false">Not Enabled</string>
+    <string name="pref_enable_notifications_default" translatable="false">true</string>
+
+    <!-- Label for the temperature units preference [CHAR LIMIT=30] -->
+    <string name="pref_units_label">Temperature Units</string>
+    <!-- Label for metric option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_units_label_metric">Metric</string>
+    <!-- Label for imperial option in temperature unit preference [CHAR LIMIT=25] -->
+    <string name="pref_units_label_imperial">Imperial</string>
+    <!-- Key name for temperature unit preference in SharedPreferences [CHAR LIMIT=NONE] -->
+    <string name="pref_units_key" translatable="false">units</string>
+    <!-- Value in SharedPreferences for metric temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_units_metric" translatable="false">metric</string>
+    <!-- Value in SharedPreferences for imperial temperature unit option [CHAR LIMIT=NONE] -->
+    <string name="pref_units_imperial" translatable="false">imperial</string>
+
+    <!-- Strings for formatting weather-related data -->
+    <!-- Temperature format [CHAR LIMIT=5 -->
+    <string name="format_temperature"><xliff:g id="temp">%1.1f</xliff:g>\u00B0</string>
+    <!-- Humidity format CHAR LIMIT=25]-->
+    <string name="format_humidity">Humidity: <xliff:g id="humidity">%1.1f</xliff:g> %%</string>
+
+    <!-- Language-specific constants -->
+    <!-- [CHAR LIMIT=15] -->
+    <string name="today">Today</string>
+    <!-- [CHAR LIMIT=15] -->
+    <string name="yesterday">Yesterday</string>
+    <!-- [CHAR LIMIT=15] -->
+    <string name="tomorrow">Tomorrow</string>
+    <!-- Date format [CHAR LIMIT=NONE] -->
+    <string name="format_full_friendly_date"><xliff:g id="month">%1$s</xliff:g>, <xliff:g id="day">%2$s</xliff:g></string>
+    <string name="seconds_ago"><xliff:g id="seconds" example="3">%1$s</xliff:g>s ago</string>
+    <string name="minutes_ago"><xliff:g id="minutes" example="3">%1$s</xliff:g>m ago</string>
+    <string name="hours_ago"><xliff:g id="hours" example="3">%1$s</xliff:g>h ago</string>
 </resources>
