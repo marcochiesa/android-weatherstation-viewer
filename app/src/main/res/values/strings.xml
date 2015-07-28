@@ -27,9 +27,9 @@
 
     <!-- Strings for formatting weather-related data -->
     <!-- Temperature format [CHAR LIMIT=5 -->
-    <string name="format_temperature"><xliff:g id="temp">%1.1f</xliff:g>\u00B0</string>
+    <string name="format_temperature"><xliff:g id="temp" example="72.4">%1.1f</xliff:g>\u00B0</string>
     <!-- Humidity format CHAR LIMIT=25]-->
-    <string name="format_humidity">Humidity: <xliff:g id="humidity">%1.1f</xliff:g> %%</string>
+    <string name="format_humidity">Humidity: <xliff:g id="humidity" example="56.2">%1.1f</xliff:g> %%</string>
 
     <!-- Language-specific constants -->
     <!-- [CHAR LIMIT=15] -->
