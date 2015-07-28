@@ -1,14 +1,19 @@
 package com.getmarco.weatherstationviewer;
 
 import android.app.Activity;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 
-
-import com.getmarco.weatherstationviewer.dummy.DummyContent;
+import com.getmarco.weatherstationviewer.data.StationContract;
 
 /**
  * A list fragment representing a list of Stations. This fragment
@@ -19,7 +24,7 @@ import com.getmarco.weatherstationviewer.dummy.DummyContent;
  * Activities containing this fragment MUST implement the {@link Callbacks}
  * interface.
  */
-public class StationListFragment extends ListFragment {
+public class StationListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -28,15 +33,16 @@ public class StationListFragment extends ListFragment {
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
     /**
-     * The fragment's current callback object, which is notified of list item
-     * clicks.
+     * The fragment's current callback object, which is notified of list item clicks.
      */
-    private Callbacks mCallbacks = sDummyCallbacks;
+    private Callbacks mCallbacks = null;
 
     /**
      * The current activated item position. Only used on tablets.
      */
     private int mActivatedPosition = ListView.INVALID_POSITION;
+
+    private static final int STATION_LOADER = 0;
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -47,18 +53,8 @@ public class StationListFragment extends ListFragment {
         /**
          * Callback for when an item has been selected.
          */
-        public void onItemSelected(String id);
+        public void onItemSelected(Uri conditionUri);
     }
-
-    /**
-     * A dummy implementation of the {@link Callbacks} interface that does
-     * nothing. Used only when this fragment is not attached to an activity.
-     */
-    private static Callbacks sDummyCallbacks = new Callbacks() {
-        @Override
-        public void onItemSelected(String id) {
-        }
-    };
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -71,12 +67,7 @@ public class StationListFragment extends ListFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // TODO: replace with a real list adapter.
-        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(
-                getActivity(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                DummyContent.ITEMS));
+        setListAdapter(new StationListAdapter(getActivity(), null, 0));
     }
 
     @Override
@@ -88,6 +79,17 @@ public class StationListFragment extends ListFragment {
                 && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
             setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
         }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        getLoaderManager().initLoader(STATION_LOADER, null, this);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    // Reload the list when the set of stations is updated
+    void onStationListChanged( ) {
+        getLoaderManager().restartLoader(STATION_LOADER, null, this);
     }
 
     @Override
@@ -106,17 +108,24 @@ public class StationListFragment extends ListFragment {
     public void onDetach() {
         super.onDetach();
 
-        // Reset the active callbacks interface to the dummy implementation.
-        mCallbacks = sDummyCallbacks;
+        // Clear the callback
+        mCallbacks = null;
     }
 
     @Override
     public void onListItemClick(ListView listView, View view, int position, long id) {
         super.onListItemClick(listView, view, position, id);
 
-        // Notify the active callbacks interface (the activity, if the
-        // fragment is attached to one) that an item has been selected.
-        mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+        // CursorAdapter returns a cursor at the correct position for getItem(), or null
+        // if it cannot seek to that position.
+        Cursor cursor = (Cursor)listView.getItemAtPosition(position);
+        if (cursor != null && mCallbacks != null) {
+            String tag = cursor.getString(cursor.getColumnIndex(StationContract.StationEntry.COLUMN_TAG));
+            Uri uri = StationContract.ConditionEntry.buildLatestConditionAtStation(tag);
+            // Notify the active callbacks interface (the activity, if the
+            // fragment is attached to one) that an item has been selected.
+            mCallbacks.onItemSelected(uri);
+        }
     }
 
     @Override
@@ -148,5 +157,62 @@ public class StationListFragment extends ListFragment {
         }
 
         mActivatedPosition = position;
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        // This is called when a new Loader needs to be created.  This
+        // fragment only uses one loader, so we don't care about checking the id.
+
+        String sortOrder = StationContract.StationEntry._ID + " ASC";
+        /*
+        String sortOrder = "CASE WHEN " + StationContract.StationEntry.COLUMN_NAME + "=''"
+                + " THEN " + StationContract.StationEntry.COLUMN_TAG
+                + " ELSE " + StationContract.StationEntry.COLUMN_NAME
+                + " END DESC";
+                */
+
+        Uri stationListUri = StationContract.StationEntry.CONTENT_URI;
+
+        return new CursorLoader(getActivity(),
+                stationListUri,
+                null,
+                null,
+                null,
+                sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        ListAdapter adapter = getListAdapter();
+        if (adapter instanceof CursorAdapter)
+            ((CursorAdapter)adapter).swapCursor(data);
+
+        if (mActivatedPosition != ListView.INVALID_POSITION) {
+            // If we don't need to restart the loader, and there's a desired position to restore
+            // to, do so now.
+            getListView().smoothScrollToPosition(mActivatedPosition);
+        }
+        updateEmptyView();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        ListAdapter adapter = getListAdapter();
+        if (adapter instanceof CursorAdapter)
+            ((CursorAdapter)adapter).swapCursor(null);
+    }
+
+    /*
+        Updates the empty list view with contextually relevant information that the user can
+        use to determine why they aren't seeing weather.
+     */
+    private void updateEmptyView() {
+        if (getListAdapter().getCount() != 0)
+            return;
+
+        int message = !Utility.isNetworkAvailable(getActivity()) ?
+                R.string.empty_station_list_no_network : R.string.empty_station_list;
+        setEmptyText(getActivity().getResources().getText(message));
     }
 }

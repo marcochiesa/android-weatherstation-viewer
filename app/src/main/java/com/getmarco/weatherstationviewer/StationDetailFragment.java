@@ -1,5 +1,6 @@
 package com.getmarco.weatherstationviewer;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -18,15 +19,15 @@ import com.getmarco.weatherstationviewer.dummy.DummyContent;
  */
 public class StationDetailFragment extends Fragment {
     /**
-     * The fragment argument representing the item ID that this fragment
-     * represents.
+     * Fragment argument representing the (latest) condition URI that this fragment represents.
      */
-    public static final String ARG_ITEM_ID = "item_id";
+    static final String DETAIL_URI = "URI";
 
     /**
      * The dummy content this fragment is presenting.
      */
     private DummyContent.DummyItem mItem;
+    private Uri mUri;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -36,20 +37,13 @@ public class StationDetailFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Load the dummy content specified by the fragment
-            // arguments. In a real-world scenario, use a Loader
-            // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
-        }
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mUri = arguments.getParcelable(StationDetailFragment.DETAIL_URI);
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_station_detail, container, false);
 
         // Show the dummy content as text in a TextView.

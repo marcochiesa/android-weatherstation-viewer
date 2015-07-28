@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.NavUtils;
+import android.view.Menu;
 import android.view.MenuItem;
 
 
@@ -39,8 +40,7 @@ public class StationDetailActivity extends ActionBarActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(StationDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(StationDetailFragment.ARG_ITEM_ID));
+            arguments.putParcelable(StationDetailFragment.DETAIL_URI, getIntent().getData());
             StationDetailFragment fragment = new StationDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -63,6 +63,17 @@ public class StationDetailActivity extends ActionBarActivity {
             NavUtils.navigateUpTo(this, new Intent(this, StationListActivity.class));
             return true;
         }
+        if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_detail, menu);
+        return true;
     }
 }
