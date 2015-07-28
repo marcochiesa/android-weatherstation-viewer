@@ -8,9 +8,8 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.widget.CursorAdapter;
 import android.view.View;
-import android.widget.CursorAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import com.getmarco.weatherstationviewer.data.StationContract;
@@ -25,6 +24,7 @@ import com.getmarco.weatherstationviewer.data.StationContract;
  * interface.
  */
 public class StationListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    public static final String LOG_TAG = StationListFragment.class.getSimpleName();
 
     /**
      * The serialization (saved instance state) Bundle key representing the
@@ -35,7 +35,9 @@ public class StationListFragment extends ListFragment implements LoaderManager.L
     /**
      * The fragment's current callback object, which is notified of list item clicks.
      */
-    private Callbacks mCallbacks = null;
+    private Callbacks mCallbacks;
+
+    private CursorAdapter cursorAdapter;
 
     /**
      * The current activated item position. Only used on tablets.
@@ -67,7 +69,8 @@ public class StationListFragment extends ListFragment implements LoaderManager.L
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setListAdapter(new StationListAdapter(getActivity(), null, 0));
+        cursorAdapter = new StationListAdapter(getActivity(), null, 0);
+        setListAdapter(cursorAdapter);
     }
 
     @Override
@@ -88,7 +91,7 @@ public class StationListFragment extends ListFragment implements LoaderManager.L
     }
 
     // Reload the list when the set of stations is updated
-    void onStationListChanged( ) {
+    void onStationListChanged() {
         getLoaderManager().restartLoader(STATION_LOADER, null, this);
     }
 
@@ -184,9 +187,7 @@ public class StationListFragment extends ListFragment implements LoaderManager.L
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        ListAdapter adapter = getListAdapter();
-        if (adapter instanceof CursorAdapter)
-            ((CursorAdapter)adapter).swapCursor(data);
+        cursorAdapter.swapCursor(data);
 
         if (mActivatedPosition != ListView.INVALID_POSITION) {
             // If we don't need to restart the loader, and there's a desired position to restore
@@ -198,9 +199,7 @@ public class StationListFragment extends ListFragment implements LoaderManager.L
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        ListAdapter adapter = getListAdapter();
-        if (adapter instanceof CursorAdapter)
-            ((CursorAdapter)adapter).swapCursor(null);
+        cursorAdapter.swapCursor(null);
     }
 
     /*

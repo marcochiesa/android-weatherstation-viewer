@@ -38,7 +38,7 @@
     <!-- Temperature format [CHAR LIMIT=5 -->
     <string name="format_temperature"><xliff:g id="temp" example="72.4">%1.1f</xliff:g>\u00B0</string>
     <!-- Humidity format CHAR LIMIT=25]-->
-    <string name="format_humidity">Humidity: <xliff:g id="humidity" example="56.2">%1.1f</xliff:g> %%</string>
+    <string name="format_humidity"><xliff:g id="humidity" example="56.2">%1.1f</xliff:g> %%</string>
 
     <!-- Language-specific constants -->
     <!-- [CHAR LIMIT=15] -->
@@ -57,4 +57,8 @@
 
     <string name="empty_station_list">No Station Information Available</string>
     <string name="empty_station_list_no_network">No station information available. The network is not available to fetch station data.</string>
+
+    <!-- A11y -->
+    <string name="a11y_temp">Temperature: <xliff:g id="temp" example="72.4">%1$s</xliff:g></string>
+    <string name="a11y_humidity">Humidity: <xliff:g id="humidity" example="56.2">%1$s</xliff:g></string>
 </resources>

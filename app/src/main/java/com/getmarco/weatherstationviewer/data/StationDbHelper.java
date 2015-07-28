@@ -1,11 +1,13 @@
 package com.getmarco.weatherstationviewer.data;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.getmarco.weatherstationviewer.data.StationContract.StationEntry;
+import com.getmarco.weatherstationviewer.Utility;
 import com.getmarco.weatherstationviewer.data.StationContract.ConditionEntry;
+import com.getmarco.weatherstationviewer.data.StationContract.StationEntry;
 
 /**
  * Created by marco on 7/26/15.
@@ -61,13 +63,34 @@ public class StationDbHelper extends SQLiteOpenHelper {
                 + StationEntry.COLUMN_TEMP_HIGH + ", "
                 + StationEntry.COLUMN_TEMP_LOW + ", "
                 + StationEntry.COLUMN_HUMIDITY_HIGH + ", "
-                + StationEntry.COLUMN_HUMIDITY_LOW + ", "
+                + StationEntry.COLUMN_HUMIDITY_LOW
                 + ") VALUES "
                 + "('test_station_1', 'Test Station 1', 75.0, 68.0, 70.0, 50.0), "
                 + "('test_station_2', 'Test Station 2', 75.0, 68.0, 70.0, 50.0), "
                 + "('test_station_3', 'Test Station 3', 75.0, 68.0, 70.0, 50.0), "
-                + "('test_station_4', 'Test Station 4', 75.0, 68.0, 70.0, 50.0), "
+                + "('test_station_4', 'Test Station 4', 75.0, 68.0, 70.0, 50.0)"
                 + ";";
+        db.execSQL(INSERT_STATIONS);
+
+        long lastId = 0;
+        final String query = "SELECT ROWID from " + StationEntry.TABLE_NAME + " order by ROWID DESC limit 1";
+        Cursor c = db.rawQuery(query, null);
+        if (c != null && c.moveToFirst()) {
+            lastId = c.getLong(0); //The 0 is the column index
+        }
+        final String INSERT_CONDITIONS = "INSERT INTO " + ConditionEntry.TABLE_NAME + " ("
+                + ConditionEntry.COLUMN_STATION_KEY + ", "
+                + ConditionEntry.COLUMN_DATE + ", "
+                + ConditionEntry.COLUMN_TEMP + ", "
+                + ConditionEntry.COLUMN_HUMIDITY + ", "
+                + ConditionEntry.COLUMN_LATITUDE + ", "
+                + ConditionEntry.COLUMN_LONGITUDE
+                + ") VALUES "
+                + "(" + lastId + ", " + (System.currentTimeMillis() - Utility.MILLIS_IN_HOUR)+ ", 72.4, 62.5, 33.496706, -86.809505), "
+                + "(" + lastId + ", " + (System.currentTimeMillis() - Utility.MILLIS_IN_MIN)+ ", 75.2, 63.8, 33.496706, -86.809505), "
+                + "(" + lastId + ", " + (System.currentTimeMillis() - Utility.MILLIS_IN_SEC)+ ", 77.3, 64.2, 33.496706, -86.809505)"
+                + ";";
+        db.execSQL(INSERT_CONDITIONS);
     }
 
     @Override
