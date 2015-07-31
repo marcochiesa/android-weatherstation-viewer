@@ -36,6 +36,9 @@ public class MessagingEndpoint {
     private static final Logger log = Logger.getLogger(MessagingEndpoint.class.getName());
     private static final String TOPICS_PREFIX = "/topics/";
 
+    public static final String SUCCESS = "success";
+    public static final String ERROR = "error";
+
     /**
      * Api Keys can be obtained from the google cloud console
      */
@@ -89,28 +92,24 @@ public class MessagingEndpoint {
      * @param message The message to send
      */
     public void sendTopicMessage(@Named("topic") String topic, @Named("message") String message) throws IOException {
-        if (topic == null || topic.trim().length() == 0) {
-            log.warning("Not sending message because the topic is missing");
-            return;
-        }
-        if (message == null || message.trim().length() == 0) {
-            log.warning("Not sending message because it is empty");
-            return;
-        }
+        if (topic == null || topic.trim().length() == 0)
+            throw new IllegalArgumentException("missing topic");
+        if (message == null || message.trim().length() == 0)
+            throw new IllegalArgumentException("missing message");
+
         // crop longer messages
         if (message.length() > 1000) {
             message = message.substring(0, 1000) + "[...]";
         }
-        Sender sender = new Sender(API_KEY);
+        TopicSender sender = new TopicSender(API_KEY);
         Message msg = new Message.Builder().addData("message", message).build();
 
         topic = TOPICS_PREFIX + topic;
-        Result result = sender.send(msg, topic, 5);
-        if (result.getMessageId() != null) {
+        TopicSender.TopicResult result;
+        result = sender.sendTopic(msg, topic, 5);
+        if (result.getMessageId() != null)
             log.info("Message sent to topic: " + topic);
-        } else {
-            String error = result.getErrorCodeName();
-            log.warning("Error when sending message : " + error);
-        }
+        else
+            log.warning("Error when sending message : " + result.getError());
     }
 }

@@ -68,5 +68,8 @@ public class ReportConditionsServlet extends HttpServlet {
 
         MessagingEndpoint endpoint = new MessagingEndpoint();
         endpoint.sendTopicMessage(CONDITIONS_TOPIC, jsonString);
+
+        resp.setContentType("text/plain");
+        resp.getWriter().println("OK");
     }
 }
