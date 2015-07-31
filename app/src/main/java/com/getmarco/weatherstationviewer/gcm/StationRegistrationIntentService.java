@@ -33,7 +33,7 @@ import java.io.IOException;
 public class StationRegistrationIntentService extends IntentService {
 
     private static final String LOG_TAG = StationRegistrationIntentService.class.getSimpleName();
-    private static final String[] TOPICS = {"global"};
+    private static final String[] TOPICS = {QuickstartPreferences.CONDITIONS_TOPIC};
 
     public StationRegistrationIntentService() {
         super(LOG_TAG);

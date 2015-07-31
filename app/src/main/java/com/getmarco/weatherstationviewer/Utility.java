@@ -19,6 +19,8 @@ public class Utility {
     public static final int MILLIS_IN_SEC = 1000;
     public static final int MILLIS_IN_MIN = 1000 * 60;
     public static final int MILLIS_IN_HOUR = 1000 * 60 * 60;
+    public static final String DATEFORMAT_DB_STYLE = "yyyy-MM-dd HH:mm:ss";
+    public static final DateFormat DATEFORMAT_DB = new SimpleDateFormat(DATEFORMAT_DB_STYLE);
 
     public static boolean isMetric(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -36,9 +38,20 @@ public class Utility {
         return String.format(context.getString(R.string.format_temperature), temperature);
     }
 
-    static String formatDate(long dateInMillis) {
-        Date date = new Date(dateInMillis);
-        return DateFormat.getDateInstance().format(date);
+    public static String formatDateDb(Date date) {
+        return DATEFORMAT_DB.format(date);
+    }
+
+    public static Date parseDateDb(String dateString) {
+        Date date = null;
+
+        try {
+            return DATEFORMAT_DB.parse(dateString);
+        } catch (java.text.ParseException e) {
+            e.printStackTrace();
+        }
+
+        return date;
     }
 
     /**

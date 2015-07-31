@@ -1,53 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.getmarco.weatherstationviewer">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.getmarco.weatherstationviewer" >
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Permissions required for Google Cloud Messaging -->
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
     <permission
         android:name="com.getmarco.weatherstationviewer.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
+
     <uses-permission android:name="com.getmarco.weatherstationviewer.permission.C2D_MESSAGE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+
+    <permission
+        android:name="com.example.gcm.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.example.gcm.permission.C2D_MESSAGE" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme" >
         <activity
             android:name=".StationListActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".StationDetailActivity"
             android:label="@string/title_station_detail"
-            android:parentActivityName=".StationListActivity">
+            android:parentActivityName=".StationListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".StationListActivity"/>
+                android:value=".StationListActivity" />
         </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".StationListActivity">
+            android:parentActivityName=".StationListActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".StationListActivity"/>
+                android:value=".StationListActivity" />
         </activity>
+
         <provider
-            android:authorities="@string/content_authority"
             android:name=".data.StationProvider"
+            android:authorities="@string/content_authority"
             android:exported="false"
-            android:syncable="true"/>
+            android:syncable="true" />
+
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"
@@ -55,27 +66,30 @@
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <!-- support pre-4.4 KitKat devices -->
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
                 <category android:name="com.getmarco.weatherstationviewer" />
             </intent-filter>
         </receiver>
+
         <service
-            android:name="com.getmarco.weatherstationviewer.gcm.StationGcmListenerService"
+            android:name=".gcm.StationGcmListenerService"
             android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
         </service>
         <service
-            android:name="com.getmarco.weatherstationviewer.gcm.StationInstanceIDListenerService"
-            android:exported="false">
+            android:name=".gcm.StationInstanceIDListenerService"
+            android:exported="false" >
             <intent-filter>
-                <action android:name="com.google.android.gms.iid.InstanceID"/>
+                <action android:name="com.google.android.gms.iid.InstanceID" />
             </intent-filter>
         </service>
         <service
-            android:name="com.getmarco.weatherstationviewer.gcm.StationRegistrationIntentService"
-            android:exported="false">
+            android:name=".gcm.StationRegistrationIntentService"
+            android:exported="false" >
         </service>
     </application>
+
 </manifest>
