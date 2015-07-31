@@ -71,35 +71,39 @@ public class StationGcmListenerService extends GcmListenerService {
          *     - Update UI.
          */
 
-        /**
-         * In some cases it may be useful to show a notification indicating to the user
-         * that a message was received.
-         */
-        sendNotification(message);
-
+        String tag = null;
+        double temp = 0;
+        double humidity = 0;
+        double latitude = 0;
+        double longitude = 0;
+        String dateString = null;
         try {
             JSONObject json = new JSONObject(message);
-            String tag = json.getString(STATION_TAG);
-            long stationId = addStation(tag);
-            double temp = json.getDouble(CONDITION_TEMP);
-            double humidity = json.getDouble(CONDITION_HUMIDITY);
-            double latitude = json.getDouble(CONDITION_LAT);
-            double longitude = json.getDouble(CONDITION_LONG);
-            String dateString = json.getString(CONDITION_DATE);
-            Date date = Utility.parseDateDb(dateString);
-
-            ContentValues conditionValues = new ContentValues();
-            conditionValues.put(StationContract.ConditionEntry.COLUMN_STATION_KEY, stationId);
-            conditionValues.put(StationContract.ConditionEntry.COLUMN_TEMP, temp);
-            conditionValues.put(StationContract.ConditionEntry.COLUMN_HUMIDITY, humidity);
-            conditionValues.put(StationContract.ConditionEntry.COLUMN_LATITUDE, latitude);
-            conditionValues.put(StationContract.ConditionEntry.COLUMN_LONGITUDE, longitude);
-            conditionValues.put(StationContract.ConditionEntry.COLUMN_DATE, date.getTime());
-
-            getContentResolver().insert(StationContract.ConditionEntry.CONTENT_URI, conditionValues);
+            tag = json.getString(STATION_TAG);
+            temp = json.getDouble(CONDITION_TEMP);
+            humidity = json.getDouble(CONDITION_HUMIDITY);
+            latitude = json.getDouble(CONDITION_LAT);
+            longitude = json.getDouble(CONDITION_LONG);
+            dateString = json.getString(CONDITION_DATE);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "error parsing GCM message JSON", e);
         }
+
+        long stationId = addStation(tag);
+        Date date = Utility.parseDateDb(dateString);
+        ContentValues conditionValues = new ContentValues();
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_STATION_KEY, stationId);
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_TEMP, temp);
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_HUMIDITY, humidity);
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_LATITUDE, latitude);
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_LONGITUDE, longitude);
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_DATE, date.getTime());
+        getContentResolver().insert(StationContract.ConditionEntry.CONTENT_URI, conditionValues);
+
+        /**
+         * show a notification indicating to the user that a message was received.
+         */
+        sendNotification("Update from station " + tag);
     }
     // [END receive_message]
 
@@ -162,12 +166,11 @@ public class StationGcmListenerService extends GcmListenerService {
             Uri insertedUri = getContentResolver().insert(StationContract.StationEntry.CONTENT_URI,
                     locationValues);
 
-            // The resulting URI contains the ID for the row.  Extract the locationId from the Uri.
+            // The resulting URI contains the ID for the row.  Extract the stationId from the Uri.
             stationId = ContentUris.parseId(insertedUri);
         }
 
         stationCursor.close();
-        // Wait, that worked?  Yes!
         return stationId;
     }
 }
