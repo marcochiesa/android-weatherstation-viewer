@@ -44,9 +44,11 @@ public class Utility {
 
     public static Date parseDateDb(String dateString) {
         Date date = null;
+        if (dateString == null)
+            return date;
 
         try {
-            return DATEFORMAT_DB.parse(dateString);
+            date = DATEFORMAT_DB.parse(dateString);
         } catch (java.text.ParseException e) {
             e.printStackTrace();
         }

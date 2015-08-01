@@ -77,14 +77,37 @@ public class StationGcmListenerService extends GcmListenerService {
         double latitude = 0;
         double longitude = 0;
         String dateString = null;
+        StringBuilder msg = new StringBuilder();
         try {
             JSONObject json = new JSONObject(message);
-            tag = json.getString(STATION_TAG);
-            temp = json.getDouble(CONDITION_TEMP);
-            humidity = json.getDouble(CONDITION_HUMIDITY);
-            latitude = json.getDouble(CONDITION_LAT);
-            longitude = json.getDouble(CONDITION_LONG);
-            dateString = json.getString(CONDITION_DATE);
+            if (!json.isNull(STATION_TAG)) {
+                tag = json.getString(STATION_TAG);
+                msg.append(tag);
+            } else
+                throw new IllegalArgumentException("station tag is required");
+
+            if (!json.isNull(CONDITION_DATE))
+                dateString = json.getString(CONDITION_DATE);
+            else
+                throw new IllegalArgumentException("date is required");
+
+            if (msg.length() > 0)
+                msg.append(" -");
+
+            if (!json.isNull(CONDITION_TEMP)) {
+                temp = json.getDouble(CONDITION_TEMP);
+                msg.append(" temp: " + getString(R.string.format_temperature, temp));
+            }
+            if (!json.isNull(CONDITION_HUMIDITY)) {
+                humidity = json.getDouble(CONDITION_HUMIDITY);
+                msg.append(" humidity: " + getString(R.string.format_humidity, humidity));
+            }
+            if (!json.isNull(CONDITION_LAT)) {
+                latitude = json.getDouble(CONDITION_LAT);
+            }
+            if (!json.isNull(CONDITION_LONG)) {
+                longitude = json.getDouble(CONDITION_LONG);
+            }
         } catch (JSONException e) {
             Log.e(LOG_TAG, "error parsing GCM message JSON", e);
         }
@@ -97,13 +120,13 @@ public class StationGcmListenerService extends GcmListenerService {
         conditionValues.put(StationContract.ConditionEntry.COLUMN_HUMIDITY, humidity);
         conditionValues.put(StationContract.ConditionEntry.COLUMN_LATITUDE, latitude);
         conditionValues.put(StationContract.ConditionEntry.COLUMN_LONGITUDE, longitude);
-        conditionValues.put(StationContract.ConditionEntry.COLUMN_DATE, date.getTime());
+        conditionValues.put(StationContract.ConditionEntry.COLUMN_DATE, date != null ? date.getTime() : 0);
         getContentResolver().insert(StationContract.ConditionEntry.CONTENT_URI, conditionValues);
 
         /**
          * show a notification indicating to the user that a message was received.
          */
-        sendNotification("Update from station " + tag);
+        sendNotification(msg.toString());
     }
     // [END receive_message]
 
@@ -121,7 +144,7 @@ public class StationGcmListenerService extends GcmListenerService {
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("GCM Message")
+                .setContentTitle("Station update")
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
