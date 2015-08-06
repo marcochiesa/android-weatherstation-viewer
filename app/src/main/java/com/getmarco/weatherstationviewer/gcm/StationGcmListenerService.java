@@ -22,10 +22,12 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -64,12 +66,12 @@ public class StationGcmListenerService extends GcmListenerService {
         Log.d(LOG_TAG, "From: " + from);
         Log.d(LOG_TAG, "Message: " + message);
 
-        /**
-         * Production applications would usually process the message here.
-         * Eg: - Syncing with server.
-         *     - Store message in local database.
-         *     - Update UI.
-         */
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean enableTempNotifications = sharedPreferences.getBoolean(
+                getString(R.string.pref_enable_temp_notifications_key), Boolean.parseBoolean("true"));
+        boolean enableHumidityNotifications = sharedPreferences.getBoolean(
+                getString(R.string.pref_enable_humidity_notifications_key), Boolean.parseBoolean("true"));
+        boolean notifyUser = false;
 
         String tag = null;
         double temp = 0;
@@ -95,10 +97,12 @@ public class StationGcmListenerService extends GcmListenerService {
                 msg.append(" -");
 
             if (!json.isNull(CONDITION_TEMP)) {
+                notifyUser |= enableTempNotifications;
                 temp = json.getDouble(CONDITION_TEMP);
                 msg.append(" temp: " + getString(R.string.format_temperature, temp));
             }
             if (!json.isNull(CONDITION_HUMIDITY)) {
+                notifyUser |= enableHumidityNotifications;
                 humidity = json.getDouble(CONDITION_HUMIDITY);
                 msg.append(" humidity: " + getString(R.string.format_humidity, humidity));
             }
@@ -126,7 +130,8 @@ public class StationGcmListenerService extends GcmListenerService {
         /**
          * show a notification indicating to the user that a message was received.
          */
-        sendNotification(msg.toString());
+        if (notifyUser)
+            sendNotification(msg.toString());
     }
     // [END receive_message]
 
